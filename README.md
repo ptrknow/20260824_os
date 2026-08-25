@@ -20,9 +20,13 @@ Run GDB in another terminal:
 gdb
 
 # Inside gdb session
+add-symbol-file build/kernelfull.o 0x100000
 target remote localhost:1234
 # Set breakpoint at start of bootloader
-break *0x7c00
+break _start
+
+# Continue execution
+continue
 # Switch to assembler layout
 layout asm
 # Step through

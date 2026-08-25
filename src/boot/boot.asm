@@ -15,6 +15,7 @@ _start:
 
 start:
     jmp 0:step2 ; Code segment will be changed to 0x00 with this jmp
+                ; such that the origin 0x00 * 16 + 0x7c00 is correct
 
 step2:
     cli             ; disables hardware interrupt
@@ -86,21 +87,78 @@ gdt_descriptor:
 
 [BITS 32]
 load32:
-    mov ax, DATA_SEG    ; Step 5: set up segment registers with GDT data selectors
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-    mov ss, ax
-    mov ebp, 0x00200000 ; Step 6: set up stack pointer
-    mov esp, ebp
-
     ; Enable A20 line to access memory beyond 1 MB
     in al, 0x92
     or al, 2
     out 0x92, al
 
-    jmp $
+    ; Load the kernel
+    mov eax, 1             ; LBA 0 is the boot sector
+                           ; LBA 1 is the second sector
+    mov ecx, 100           ; load 512 * 100 bytes
+    mov edi, 0x0100000     ; memory address to load the sectors into
+    call ata_lba_read
+    jmp CODE_SEG:0x0100000 ; execute kernel.asm file
+
+ata_lba_read:
+    mov ebx, eax ; backup LBA
+
+    ; Send the highest 8 bits of LBA to hard disk controller
+    shr eax, 24 ; shift right
+    or eax, 0xe0 ; select the master drive
+    mov dx, 0x1f6
+    out dx, al
+
+    ; Send the total sectors to read
+    mov eax, ecx
+    mov dx, 0x1f2
+    out dx, al
+
+    ; Send the lowest 8 bits of LBA
+    mov eax, ebx
+    mov dx, 0x1f3
+    out dx, al
+
+    ; Send the next higher 8 bits of LBA
+    mov dx, 0x1f4
+    mov eax, ebx
+    shr eax, 8
+    out dx, al
+
+    ; Send the remaining upper 8 bits of LBA
+    mov dx, 0x1f5
+    mov eax, ebx
+    shr eax, 16
+    out dx, al
+
+    ; Initiate the read cmd
+    ; Cmd byte = 0x20, Cmd port = 0x1f7
+    mov dx, 0x1f7
+    mov al, 0x20
+    out dx, al
+
+; A loop that reads all sectors into memory
+.next_sector:
+    push ecx
+
+; A loop that checks if we need to read from disk
+.try_again:
+    mov dx, 0x1f7
+    in al, dx
+    test al, 8
+    jz .try_again
+
+    ; Read 256 words (512 bytes) at a time
+    mov ecx, 256      ; now ecx is the number words to read
+    mov dx, 0x1f0
+    rep insw          ; read a word from port 0x1f0 and store it in edi
+                      ; repeats this process ecx times, each time decrementing
+                      ; ecx and incrementing edi
+
+    pop ecx           ; restore number of sectors in ecx
+    loop .next_sector ; decrement ecx, jump to label if ecx is not zero
+
+    ret
 
 times 510-($ - $$) db 0 ; Fill the rest of sectors with zeros, up to 510 bytes
 
