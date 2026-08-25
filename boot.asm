@@ -8,10 +8,18 @@ start:
     mov es, ax      ; set ext segment register
     mov ax, 0x00
     mov ss, ax      ; set stack segment register
+                    ; to point to the base of IVT
     sti             ; enable hardware interrupt
 
-    mov si, message ; Address of 'message' moved into SI register
-    call print      ; Call 'print' function
+    ; Set up interrupt handler at interrupt vector 0x80
+    ; i.e. starting from 0x80 * 4 = 0x200 byte offset
+    mov ax, 0x7c0
+    mov word[ss:0x202], ax ; Store the segment address of our code to IVT
+    lea ax, [print]
+    mov word[ss:0x200], ax ; Store the offset to 'print' routine to IVT
+
+    lea si, [message]      ; Address of 'message' moved into SI register
+    int 0x80               ; Call our newly setup interrupt
     jmp $           ; Infinite loop, GOTO THIS instruction
 
 print:
@@ -23,7 +31,7 @@ print:
     call print_char ; Otherwise, print the character in AL
     jmp .loop       ; Loop to the next character
 .done:
-    ret             ; Return from the print function
+    iret            ; Return from ISR
 
 print_char:
     mov ah, 0eh     ; Load the BIOS service number for printing a character
@@ -31,6 +39,7 @@ print_char:
     ret             ; Return from the print_char function
 
 message: db 'Hello, World!', 0 ; Null-terminated string to be printed
+isr_message: db 'Interrupt happened!', 0
 
 times 510-($ - $$) db 0 ; Fill the rest of sectors with zeros, up to 510 bytes
 
