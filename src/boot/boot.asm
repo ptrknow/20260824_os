@@ -87,11 +87,6 @@ gdt_descriptor:
 
 [BITS 32]
 load32:
-    ; Enable A20 line to access memory beyond 1 MB
-    in al, 0x92
-    or al, 2
-    out 0x92, al
-
     ; Load the kernel
     mov eax, 1             ; LBA 0 is the boot sector
                            ; LBA 1 is the second sector
