@@ -11,20 +11,20 @@ start:
                     ; to point to the base of IVT
     sti             ; enable hardware interrupt
 
-    ; Set up exception handler at interrupt vector 0x00
-    mov ax, 0x7c0
-    mov word[ss:0x02], ax ; Store the segment address of our code to IVT
-    mov ax, div_zero_handler
-    mov word[ss:0x00], ax ; Store the offset of exception handler to IVT
-    ; Intentionally cause divide-by-zero error
-    mov ax, 0
-    div ax
-    jmp $           ; Infinite loop, GOTO THIS instruction
+    ; Set up registers to read from disk
+    ; (Read from the second sector just after our boot sector)
+    mov bx, 0x0200  ; ES:BX = 0x7c0 * 16 + 0x200 = 0x7e00
+    mov ah, 0x02    ; Read from disk CMD
+    mov al, 0x01    ; Read one sector (512 bytes)
+    mov ch, 0x00    ; Cylinder 0
+    mov cl, 0x02    ; Sector 2
+    mov dh, 0x00    ; Head 0
+    mov dl, 0x80    ; Primary hard drive
+    int 0x13        ; Read from disk interrupt
 
-div_zero_handler:
-    mov si, div_zero_msg
+    mov si, 0x200
     call print
-    iret
+    jmp $           ; Infinite loop, GOTO THIS instruction
 
 print:
     mov bx, 0       ; Clear BX register and use it as a counter
