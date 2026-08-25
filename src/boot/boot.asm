@@ -94,6 +94,12 @@ load32:
     mov ss, ax
     mov ebp, 0x00200000 ; Step 6: set up stack pointer
     mov esp, ebp
+
+    ; Enable A20 line to access memory beyond 1 MB
+    in al, 0x92
+    or al, 2
+    out 0x92, al
+
     jmp $
 
 times 510-($ - $$) db 0 ; Fill the rest of sectors with zeros, up to 510 bytes
