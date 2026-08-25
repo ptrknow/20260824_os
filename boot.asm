@@ -11,16 +11,20 @@ start:
                     ; to point to the base of IVT
     sti             ; enable hardware interrupt
 
-    ; Set up interrupt handler at interrupt vector 0x80
-    ; i.e. starting from 0x80 * 4 = 0x200 byte offset
+    ; Set up exception handler at interrupt vector 0x00
     mov ax, 0x7c0
-    mov word[ss:0x202], ax ; Store the segment address of our code to IVT
-    lea ax, [print]
-    mov word[ss:0x200], ax ; Store the offset to 'print' routine to IVT
-
-    lea si, [message]      ; Address of 'message' moved into SI register
-    int 0x80               ; Call our newly setup interrupt
+    mov word[ss:0x02], ax ; Store the segment address of our code to IVT
+    mov ax, div_zero_handler
+    mov word[ss:0x00], ax ; Store the offset of exception handler to IVT
+    ; Intentionally cause divide-by-zero error
+    mov ax, 0
+    div ax
     jmp $           ; Infinite loop, GOTO THIS instruction
+
+div_zero_handler:
+    mov si, div_zero_msg
+    call print
+    iret
 
 print:
     mov bx, 0       ; Clear BX register and use it as a counter
@@ -31,15 +35,14 @@ print:
     call print_char ; Otherwise, print the character in AL
     jmp .loop       ; Loop to the next character
 .done:
-    iret            ; Return from ISR
+    ret             ; Swap back from IRET to RET
 
 print_char:
     mov ah, 0eh     ; Load the BIOS service number for printing a character
     int 0x10        ; Call BIOS interrupt 0x10 to handle screen operations
     ret             ; Return from the print_char function
 
-message: db 'Hello, World!', 0 ; Null-terminated string to be printed
-isr_message: db 'Interrupt happened!', 0
+div_zero_msg: db 'Divide by zero error!', 0 ; Null-terminated string to be printed
 
 times 510-($ - $$) db 0 ; Fill the rest of sectors with zeros, up to 510 bytes
 
