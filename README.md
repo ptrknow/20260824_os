@@ -1,19 +1,35 @@
 # Real Mode
 
-Create a 2-sector (1024-byte) raw binary virtual hard disk:
+Compile:
 ```
-nasm -f bin boot.asm -o boot.bin
-nasm -f bin data.asm -o data.bin
-dd if=./boot.bin of=./os.bin
-dd if=./data.bin conv=notrunc oflag=append of=./os.bin
+make all
 ```
 
 Boot with QEMU:
 ```
-qemu-system-x86_64 -hda os.bin
+make run
+```
+
+Boot with QEMU and GDB server:
+```
+make debug
+```
+
+Run GDB in another terminal:
+```
+gdb
+
+# Inside gdb session
+target remote localhost:1234
+# Set breakpoint at start of bootloader
+break *0x7c00
+# Switch to assembler layout
+layout asm
+# Step through
+stepi
 ```
 
 Raw hexdump:
 ```
-xxd os.bin
+xxd boot.bin
 ```
