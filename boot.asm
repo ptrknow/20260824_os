@@ -1,7 +1,15 @@
-ORG 0x7c00 ; Tells NASM where in memory our program will run
+ORG 0      ; Tells NASM where in memory our program will run
 BITS 16    ; 16-bit code
 
 start:
+    cli             ; disables hardware interrupt
+    mov ax, 0x7c0
+    mov ds, ax      ; set data segment register
+    mov es, ax      ; set ext segment register
+    mov ax, 0x00
+    mov ss, ax      ; set stack segment register
+    sti             ; enable hardware interrupt
+
     mov si, message ; Address of 'message' moved into SI register
     call print      ; Call 'print' function
     jmp $           ; Infinite loop, GOTO THIS instruction
