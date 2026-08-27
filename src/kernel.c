@@ -62,7 +62,4 @@ void kernel_main() {
     print("Hello world!\ntest");
 
     idt_init();
-
-    // send reset cmd to keyboard controller
-    outb(0x60, 0xff);
 }

@@ -20,6 +20,18 @@ _start:
     or al, 2
     out 0x92, al
 
+    ; Remap the master PIC
+    mov al, 00010001b ; Initialization Command Word (ICW)
+    out 0x20, al      ; cmd port
+    mov al, 0x20      ; Interrupt vector offset
+    out 0x21, al      ; data port
+    mov al, 00000001b
+    out 0x21, al
+
+    ; The slave PIC is ignored
+    sti               ; We have disabled interrupt in
+                      ; .load_protected in boot.asm
+
     call kernel_main
 
     jmp $
