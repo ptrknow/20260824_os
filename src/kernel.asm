@@ -29,8 +29,6 @@ _start:
     out 0x21, al
 
     ; The slave PIC is ignored
-    sti               ; We have disabled interrupt in
-                      ; .load_protected in boot.asm
 
     call kernel_main
 
