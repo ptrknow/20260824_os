@@ -4,8 +4,10 @@
 #include "memory/heap/kheap.h"
 #include "memory/paging/paging.h"
 #include "disk/disk.h"
+#include "disk/streamer.h"
 #include "string/string.h"
 #include "fs/pparser.h"
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -72,18 +74,9 @@ void kernel_main() {
 
     enable_interrupts();
 
-    struct path_root* root = pathparser_parse(
-        "0:/bin/shell.exe", NULL);
-    if (root) {
-        print("\n");
-        if (root->drive_no == 0)
-            print("Drive number: 0\n");
-        struct path_part* path = root->first;
-        while (path) {
-            print(path->part);
-            print("\n");
-            path = path->next;
-        }
-    }
-    pathparser_free(root);
+    struct disk_stream* stream = diskstreamer_new(0);
+    diskstreamer_seek(stream, 0x201);
+    char c = 0;
+    diskstreamer_read(stream, &c, 1);
+    print(&c);
 }
