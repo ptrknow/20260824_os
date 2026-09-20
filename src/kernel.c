@@ -4,6 +4,7 @@
 #include "memory/heap/kheap.h"
 #include "memory/paging/paging.h"
 #include "disk/disk.h"
+#include "string/string.h"
 #include <stddef.h>
 #include <stdint.h>
 
@@ -43,14 +44,6 @@ void terminal_initialize() {
             terminal_putchar(x, y, ' ', 0);
         }
     }
-}
-
-size_t strlen(const char* str) {
-    size_t len = 0;
-    while(str[len]) {
-        len++;
-    }
-    return len;
 }
 
 void print(const char* str) {
