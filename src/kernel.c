@@ -7,6 +7,7 @@
 #include "disk/streamer.h"
 #include "string/string.h"
 #include "fs/pparser.h"
+#include "fs/file.h"
 
 #include <stddef.h>
 #include <stdint.h>
@@ -63,6 +64,7 @@ void kernel_main() {
     print("Hello world!\ntest");
 
     kheap_init();
+    fs_init();
     disk_search_and_init();
     idt_init();
 
