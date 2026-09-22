@@ -11,6 +11,7 @@ void disk_search_and_init() {
     disk.type = DISK_TYPE_REAL;
     disk.sector_size = IDE_SECTOR_SIZE;
     disk.filesystem = fs_resolve(&disk);
+    disk.id = 0;
 }
 
 struct disk* disk_get(int index) {

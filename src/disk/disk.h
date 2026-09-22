@@ -13,6 +13,8 @@ struct disk {
     DISK_TYPE type;
     int sector_size;
     struct filesystem* filesystem;
+    int id; // ID of mounted disk
+    void* fs_private;
 };
 
 void disk_search_and_init();
